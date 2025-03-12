@@ -43,7 +43,7 @@ curl -X PUT http://localhost:5000/members/1 \
 curl -X DELETE http://localhost:5000/members/1
 
 
-
+curl -X GET http://localhost:5000/member-books/85
 # export
 PYTHONDONTWRITEBYTECODE=1
 python main.py
