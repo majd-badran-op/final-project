@@ -1,6 +1,7 @@
 from app.infrastructure.repositories.members_repo import MembersRepo
 from app.infrastructure.repositories.unit_of_work import UnitOfWork
 from app.domain.entities.member_entity import Member
+from app.domain.entities.book_entity import Book
 
 
 class MembersServices:
@@ -44,3 +45,13 @@ class MembersServices:
             if not result:
                 raise ValueError('Failed to delete member')
         return {'message': 'Member deleted successfully'}, 200
+
+    def get_member_books(self, id: int) -> tuple[Member, list[Book], int]:
+        with UnitOfWork(self.repo) as uow:
+            member = uow.repo.get(id, uow.session)
+            if not member:
+                raise ValueError('Member not found')
+            member_books = self.repo.get_all_books_for_member(id, uow.session)
+        if not member_books:
+            raise ValueError('Member dont have any books')
+        return member_books, member, 200
