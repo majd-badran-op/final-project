@@ -1,0 +1,49 @@
+# GET /books
+curl -X GET http://localhost:5000/books
+
+# POST /books
+curl -X POST http://localhost:5000/books \
+    -H "Content-Type: application/json" \
+    -d '{"title": "New Book", "author": "New Author"}'
+
+# GET /books/<int:id>
+curl -X GET http://localhost:5000/books/1
+
+# PUT /books/<int:id>
+curl -X PUT http://localhost:5000/books/1 \
+    -H "Content-Type: application/json" \
+    -d '{"title": "Updated Book", "author": "Updated Author"}'
+
+# DELETE /books/<int:id>
+curl -X DELETE http://localhost:5000/books/1
+
+# POST /borrow/<int:book_id>/<int:member_id>
+curl -X POST http://localhost:5000/borrow/2/1
+
+# POST /return/<int:id>
+curl -X POST http://localhost:5000/return/2
+
+# GET /members
+curl -X GET http://localhost:5000/members
+
+# POST /members
+curl -X POST http://localhost:5000/members \
+    -H "Content-Type: application/json" \
+    -d '{"name": "majd badran", "email": "majd@gmail.com"}'
+
+# GET /members/<int:id>
+curl -X GET http://localhost:5000/members/1
+
+# PUT /members/<int:id>
+curl -X PUT http://localhost:5000/members/1 \
+    -H "Content-Type: application/json" \
+    -d '{"name": "John Updated", "email": "johnupdated@example.com"}'
+
+# DELETE /members/<int:id>
+curl -X DELETE http://localhost:5000/members/1
+
+
+
+# export
+PYTHONDONTWRITEBYTECODE=1
+python main.py
