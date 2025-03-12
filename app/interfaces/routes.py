@@ -1,19 +1,25 @@
 from flask import Flask
-from view.members_view import MemberView
-from view.bocks_view import BookView
+from .view.members_view import MemberView
+from .view.books_view import BookView
 from flask_cors import CORS
+from .view.borrow_view import BorrowView
+from .view.return_view import ReturnView
 
 
 def register_routes(app: Flask):
     book_view = BookView.as_view('book_view')
     app.add_url_rule('/books', view_func=book_view, methods=['GET', 'POST'])
     app.add_url_rule('/books/<int:book_id>', view_func=book_view, methods=['GET', 'PUT', 'DELETE'])
-    app.add_url_rule('/borrow/<int:book_id>/<uuid:member_id>', view_func=book_view, methods=['POST'])
-    app.add_url_rule('/return/<int:book_id>', view_func=book_view, methods=['POST'])
+
+    borrow_view = BorrowView.as_view('borrow_view')
+    app.add_url_rule('/borrow/<int:book_id>/<int:member_id>', view_func=borrow_view, methods=['POST'])
+
+    return_view = ReturnView.as_view('return_view')
+    app.add_url_rule('/return/<int:book_id>', view_func=return_view, methods=['POST'], endpoint='return_view')
 
     member_view = MemberView.as_view('member_view')
     app.add_url_rule('/members', view_func=member_view, methods=['GET', 'POST'])
-    app.add_url_rule('/members/<uuid:member_id>', view_func=member_view, methods=['GET', 'PUT', 'DELETE'])
+    app.add_url_rule('/members/<int:member_id>', view_func=member_view, methods=['GET', 'PUT', 'DELETE'])
 
 
 def setup_cors(app):

@@ -1,9 +1,10 @@
 from sqlalchemy import Table, Column, Integer, String, Boolean, DateTime, ForeignKey, MetaData
 
 metadata = MetaData()
+
 members = Table(
     'members', metadata,
-    Column('id', primary_key=True, autoincrement=True),
+    Column('id', Integer, primary_key=True, autoincrement=True),
     Column('name', String, nullable=False),
     Column('email', String, nullable=False, unique=True)
 )

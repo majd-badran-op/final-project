@@ -1,31 +1,30 @@
 from dataclasses import dataclass
 from typing import Optional
 from datetime import datetime
-from member_entity import Member
-from base_entity import BaseEntity
+from .base_entity import BaseEntity
 
 
 @dataclass
 class Book(BaseEntity):
-    id: Optional[int] = None
     title: str
     author: str
     is_borrowed: bool = False
     borrowed_date: Optional[datetime] = None
-    borrowed_by: Optional['Member'] = None
+    borrowed_by: Optional[int] = None
 
-    def borrow(self, member: 'Member'):
-        ''' Method to borrow this book '''
+    def borrow(self, member: int):
         self.is_borrowed = True
         self.borrowed_date = datetime.now()
         self.borrowed_by = member
-        member.borrowed_books.append(self)
 
     def return_book(self):
-        ''' Method to return the book '''
         self.is_borrowed = False
         self.borrowed_date = None
         self.borrowed_by = None
 
-    def __str__(self):
-        return f'Book(id={self.id}, title={self.title}, author={self.author})'
+    def copy_from(self, other: 'Book') -> None:
+        self.title = other.title
+        self.author = other.author
+        self.is_borrowed = other.is_borrowed
+        self.borrowed_date = other.borrowed_date
+        self.borrowed_by = other.borrowed_by
