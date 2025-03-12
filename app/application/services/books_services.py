@@ -18,13 +18,12 @@ class BooksServices:
         with UnitOfWork(self.repo) as uow:
             book: Book = uow.repo.get(book_id, uow.session)
             member, message, status_code = self.member_serves.get_by_id(member_id)
-
             if not book:
-                raise ValueError('No books found')
-            elif not member:
-                raise ValueError('Member Not found')
-            elif book.is_borrowed:
+                raise ValueError('Book not found')
+            if book.is_borrowed:
                 raise ValueError('Book is already borrowed')
+            if not member:
+                raise ValueError('Member Not found')
 
             book.borrow(member.id)
             uow.repo.update(book, book_id, uow.session)
@@ -34,7 +33,7 @@ class BooksServices:
         with UnitOfWork(self.repo) as uow:
             books = uow.repo.get_all(uow.session)
         if not books:
-            raise ValueError('No books found')
+            raise ValueError('Book not found')
         return books, 200
 
     def get_by_id(self, id: int) -> tuple[dict, int]:

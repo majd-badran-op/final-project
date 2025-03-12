@@ -1,22 +1,16 @@
 from app.infrastructure.repositories.members_repo import MembersRepo
 from app.infrastructure.repositories.unit_of_work import UnitOfWork
 from app.domain.entities.member_entity import Member
-from sqlalchemy.exc import IntegrityError
 
 
 class MembersServices:
     def __init__(self) -> None:
         self.repo = MembersRepo()
 
-    def add(self, entity: Member) -> tuple[Member, dict, int]:
-        try:
-            with UnitOfWork(self.repo) as uow:
-                uow.repo.insert(entity, uow.session)
-            return entity, {'message': 'Member added successfully'}, 200
-        except IntegrityError as e:
-            if 'members_email_key' in str(e.orig):
-                raise ValueError('This email is already registered. Please use a different email.')
-            raise
+    def add(self, entity: Member) -> tuple[Member, int]:
+        with UnitOfWork(self.repo) as uow:
+            uow.repo.insert(entity, uow.session)
+            return entity, 200
 
     def get_all(self) -> tuple[list[Member], int]:
         with UnitOfWork(self.repo) as uow:

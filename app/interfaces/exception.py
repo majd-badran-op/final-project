@@ -29,6 +29,8 @@ def register_error_handlers(app):
 
     @app.errorhandler(IntegrityError)
     def handle_integrity_error(e: IntegrityError):
+        if 'members_email_key' in str(e.orig):
+            raise ValueError('This email is already registered. Please use a different email.')
         response = {
             'code': 400,
             'name': 'IntegrityError',
