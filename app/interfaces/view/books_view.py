@@ -24,7 +24,7 @@ class BookView(MethodView):
             author=data.get('author'),
         )
         entity, status_code = self.books_service.add(entity)
-        return jsonify(entity.__dict__), status_code
+        return jsonify(entity, status_code)
 
     def put(self, book_id: int) -> Response:
         data = request.get_json()

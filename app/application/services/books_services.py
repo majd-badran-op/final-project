@@ -11,8 +11,8 @@ class BooksServices:
 
     def add(self, entity: Book) -> tuple[Book, int]:
         with UnitOfWork(self.repo) as uow:
-            uow.repo.insert(entity, uow.session)
-        return entity, 200
+            book_entity = uow.repo.insert(entity, uow.session)
+        return book_entity, 200
 
     def borrow(self, book_id: int, member_id: int) -> tuple[Book, dict, int]:
         with UnitOfWork(self.repo) as uow:

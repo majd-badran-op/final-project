@@ -9,8 +9,8 @@ class MembersServices:
 
     def add(self, entity: Member) -> tuple[Member, int]:
         with UnitOfWork(self.repo) as uow:
-            uow.repo.insert(entity, uow.session)
-            return entity, 200
+            member_entity = uow.repo.insert(entity, uow.session)
+            return member_entity, 200
 
     def get_all(self) -> tuple[list[Member], int]:
         with UnitOfWork(self.repo) as uow:

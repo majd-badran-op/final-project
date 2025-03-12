@@ -4,10 +4,10 @@ curl -X GET http://localhost:5000/books
 # POST /books
 curl -X POST http://localhost:5000/books \
     -H "Content-Type: application/json" \
-    -d '{"title": "New Book", "author": "New Author"}'
+    -d '{"title": "millionaire", "author": "majd badaran"}'
 
 # GET /books/<int:id>
-curl -X GET http://localhost:5000/books/1
+curl -X GET http://localhost:5000/books/165
 
 # PUT /books/<int:id>
 curl -X PUT http://localhost:5000/books/1 \
@@ -15,10 +15,10 @@ curl -X PUT http://localhost:5000/books/1 \
     -d '{"title": "Updated Book", "author": "Updated Author"}'
 
 # DELETE /books/<int:id>
-curl -X DELETE http://localhost:5000/books/1
+curl -X DELETE http://localhost:5000/books/163
 
 # POST /borrow/<int:book_id>/<int:member_id>
-curl -X POST http://localhost:5000/borrow/2/1
+curl -X POST http://localhost:5000/borrow/162/84
 
 # POST /return/<int:id>
 curl -X POST http://localhost:5000/return/2
@@ -29,7 +29,7 @@ curl -X GET http://localhost:5000/members
 # POST /members
 curl -X POST http://localhost:5000/members \
     -H "Content-Type: application/json" \
-    -d '{"name": "majd badran", "email": "majd@gmail.com"}'
+    -d '{"name": "badran majd", "email": "majd@gmail.com"}'
 
 # GET /members/<int:id>
 curl -X GET http://localhost:5000/members/1
