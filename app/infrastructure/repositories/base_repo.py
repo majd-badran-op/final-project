@@ -2,7 +2,7 @@ from typing import Generic, TypeVar, Type, List, Any
 from app.domain.entities.base_entity import BaseEntity
 from sqlalchemy import Table, insert, select, update, delete
 from sqlalchemy.orm import Session
-from sqlalchemy.engine import Result
+from sqlalchemy.engine import CursorResult
 
 E = TypeVar('E', bound=BaseEntity)
 
@@ -33,10 +33,10 @@ class BaseRepo(Generic[E]):
     def update(self, entity: E, id: int, session: Session) -> bool:
         data = {key: value for key, value in vars(entity).items() if key != 'id'}
         sql = update(self.table).where(self.table.c.id == id).values(**data)
-        result: Result[Any] = session.execute(sql)
+        result: CursorResult[Any] = session.execute(sql)
         return result.rowcount > 0
 
     def delete(self, id: int, session: Session) -> bool:
         sql = delete(self.table).where(self.table.c.id == id)
-        result: Result[Any] = session.execute(sql)
+        result: CursorResult[Any] = session.execute(sql)
         return result.rowcount > 0

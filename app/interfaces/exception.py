@@ -1,6 +1,6 @@
 from flask import json, Response
 from werkzeug.exceptions import HTTPException
-from psycopg2 import OperationalError, IntegrityError
+from psycopg2 import OperationalError, IntegrityError as Psycopg2IntegrityError
 from sqlalchemy.exc import IntegrityError as SQLAlchemyIntegrityError
 
 
@@ -12,7 +12,7 @@ def register_error_handlers(app):
             'code': e.code,
             'name': e.name,
             'description': e.description,
-        })
+        }).encode('utf-8')
         response.content_type = 'application/json'
         return response
 
@@ -27,9 +27,9 @@ def register_error_handlers(app):
             json.dumps(response), status=500, content_type='application/json'
         )
 
-    @app.errorhandler(IntegrityError)
-    def handle_integrity_error(e: IntegrityError):
-        if 'members_email_key' in str(e.orig):
+    @app.errorhandler(Psycopg2IntegrityError)
+    def handle_psycopg2_integrity_error(e: Psycopg2IntegrityError):
+        if hasattr(e, 'pgcode') and e.pgcode and 'members_email_key' in e.pgcode:
             raise ValueError('This email is already registered. Please use a different email.')
         response = {
             'code': 400,

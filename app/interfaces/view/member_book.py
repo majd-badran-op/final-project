@@ -1,4 +1,4 @@
-from flask import jsonify, Response
+from flask import jsonify, Response, make_response
 from flask.views import MethodView
 from app.application.services.members_services import MembersServices
 
@@ -9,4 +9,4 @@ class MemberBookView(MethodView):
 
     def get(self, member_id: int) -> Response:
         member, books, status_code = self.books_service.get_member_books(member_id)
-        return jsonify(member, books), status_code
+        return make_response(jsonify(member, books), status_code)

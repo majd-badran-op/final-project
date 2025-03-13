@@ -1,4 +1,4 @@
-from flask import abort, jsonify, Response
+from flask import jsonify, Response, make_response
 from flask.views import MethodView
 from app.application.services.books_services import BooksServices
 
@@ -8,8 +8,6 @@ class ReturnView(MethodView):
         self.books_service = BooksServices()
 
     def post(self, book_id: int) -> Response:
-        try:
-            book, message, status_code = self.books_service.return_book(book_id)
-            return jsonify({'message': message, 'book': book.__dict__}), status_code
-        except ValueError as e:
-            abort(400, description=str(e))
+        book, message, status_code = self.books_service.return_book(book_id)
+        response = make_response(jsonify({'message': message, 'book': book.__dict__}), status_code)
+        return response
