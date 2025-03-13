@@ -8,7 +8,7 @@ This is a Flask-based library management system that allows users to manage book
 ### 1. Create a Virtual Environment with Pyenv
 Ensure you have `pyenv` installed, then create a virtual environment:
 ```sh
-pyenv virtualenv 3.x.x library_env
+pyenv virtualenv 3.10.4 library_env
 pyenv activate library_env
 ```
 
@@ -107,10 +107,4 @@ To run the test suite with `pytest`, execute the following command:
 ```sh
 PYTHONPATH=$(pwd) pytest app/tests
 ```
-
-## License
-This project is licensed under the MIT License.
-
-## Author
-Majd Badaran
 
