@@ -13,10 +13,15 @@ class MembersRepo(BaseRepo[Member]):
         super().__init__(Member, members)
 
     def get_all_books_for_member(self, member_id: int, session: Session) -> List[Book] | None:
-        query = select(books.c.title, books.c.author, books.c.id).where(books.c.borrowed_by == member_id)
+        query = select(
+            books.c.id, books.c.title, books.c.author, books.c.is_borrowed,
+            books.c.borrowed_date, books.c.borrowed_by
+        ).where(books.c.borrowed_by == member_id)
+
         result = session.execute(query).fetchall()
 
         if result:
-            return [Book(title=row[0], author=row[1], id=row[2]) for row in result]
+            return [Book(id=row[0], title=row[1], author=row[2], is_borrowed=row[3],
+                         borrowed_date=row[4], borrowed_by=row[5]) for row in result]
 
         return None
