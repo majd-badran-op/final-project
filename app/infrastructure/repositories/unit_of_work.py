@@ -1,13 +1,11 @@
 from sqlalchemy.orm import Session
-from .base_repo import BaseRepo
-from typing import Any, Optional, Type
+from typing import Optional, Type
 from app.infrastructure.database.con import get_session
 
 
 class UnitOfWork:
-    def __init__(self, repo_class: BaseRepo[Any]) -> None:
+    def __init__(self) -> None:
         self.session: Session
-        self.repo = repo_class
 
     def __enter__(self) -> 'UnitOfWork':
         self.session = get_session()

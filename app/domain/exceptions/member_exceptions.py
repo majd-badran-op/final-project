@@ -20,3 +20,9 @@ class MemberBooksNotFoundError(Exception):
     def __init__(self, message='Member doesn\'t have any books'):
         self.message = message
         super().__init__(self.message)
+
+
+class EmailAlreadyExistsError(Exception):
+    def __init__(self, message='The email address already exists.'):
+        self.message = message
+        super().__init__(self.message)

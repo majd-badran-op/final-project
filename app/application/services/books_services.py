@@ -2,7 +2,6 @@ from typing import Optional, Tuple
 from app.infrastructure.repositories.books_repo import BooksRepo
 from app.infrastructure.repositories.unit_of_work import UnitOfWork
 from app.domain.entities.book_entity import Book
-from .members_services import MembersServices
 from app.domain.exceptions.member_exceptions import MemberNotFoundError
 from app.domain.exceptions.book_exception import (
     BookNotFoundError,
@@ -15,21 +14,25 @@ from app.domain.exceptions.book_exception import (
 class BooksServices:
     def __init__(self) -> None:
         self.repo = BooksRepo()
-        self.member_serves = MembersServices()
+
+    @property
+    def member_serves(self):
+        from .members_services import MembersServices
+        return MembersServices()
 
     def add(self, entity: Book) -> Tuple[Book, int]:
-        with UnitOfWork(self.repo) as uow:
-            book_entity = uow.repo.insert(entity, uow.session)
+        with UnitOfWork() as uow:
+            book_entity = self.repo.insert(entity, uow.session)
             if book_entity:
                 return book_entity, 200
             else:
                 raise BookNotFoundError()
 
     def borrow(self, book_id: int, member_id: int) -> tuple[Optional[Book], dict, int]:
-        with UnitOfWork(self.repo) as uow:
-            book: Optional[Book] = uow.repo.get(book_id, uow.session)
-            member, message, status_code = self.member_serves.get_by_id(member_id)
-
+        with UnitOfWork() as uow:
+            book, code = self.get_by_id(book_id)
+            result = self.member_serves.get_by_id(member_id)
+            member = result[0]
             if book is None:
                 raise BookNotFoundError()
             if book.is_borrowed:
@@ -38,50 +41,56 @@ class BooksServices:
                 raise MemberNotFoundError()
 
             book.borrow(member.id)
-            uow.repo.update(book, book_id, uow.session)
+            self.repo.update(book, book_id, uow.session)
         return book, {'message': f'{book.title} borrowed successfully by {member.name}'}, 200
 
     def get_all(self) -> tuple[list[Book], int]:
-        with UnitOfWork(self.repo) as uow:
-            books = uow.repo.get_all(uow.session)
+        with UnitOfWork() as uow:
+            books = self.repo.get_all(uow.session)
         if not books:
             raise BookNotFoundError('No books available.')
         return books, 200
 
-    def get_by_id(self, id: int) -> tuple[Optional[dict], int]:
-        with UnitOfWork(self.repo) as uow:
-            book_entity: Optional[Book] = uow.repo.get(id, uow.session)
+    def get_all_books_for_member(self, id: int) -> tuple[list[Book] | str, int]:
+        with UnitOfWork() as uow:
+            books = self.repo.get_all_books_for_member(id, uow.session)
+        if not books:
+            return 'No books available.'
+        return books, 200
+
+    def get_by_id(self, id: int) -> tuple[Book, int]:
+        with UnitOfWork() as uow:
+            book_entity: Optional[Book] = self.repo.get(id, uow.session)
         if book_entity is None:
             raise BookNotFoundError()
         return book_entity, 200
 
     def update(self, id: int, entity: Book) -> tuple[dict, int]:
-        with UnitOfWork(self.repo) as uow:
-            book_entity: Optional[Book] = uow.repo.get(id, uow.session)
+        with UnitOfWork() as uow:
+            book_entity, code = self.get_by_id(id)
             if book_entity is None:
                 raise BookNotFoundError()
             book_entity.copy_from(entity)
-            uow.repo.update(book_entity, id, uow.session)
+            self.repo.update(book_entity, id, uow.session)
         return {'message': 'Book updated successfully'}, 200
 
     def delete(self, id: int) -> tuple[dict, int]:
-        with UnitOfWork(self.repo) as uow:
-            book_to_delete: Optional[Book] = uow.repo.get(id, uow.session)
+        with UnitOfWork() as uow:
+            book_to_delete, code = self.get_by_id(id)
             if book_to_delete is None:
                 raise BookNotFoundError()
-            result = uow.repo.delete(id, uow.session)
+            result = self.repo.delete(id, uow.session)
             if not result:
                 raise FailedToDeleteBookError()
         return {'message': 'Book deleted successfully'}, 200
 
     def return_book(self, book_id: int) -> tuple[Optional[Book], dict, int]:
-        with UnitOfWork(self.repo) as uow:
-            book: Optional[Book] = uow.repo.get(book_id, uow.session)
+        with UnitOfWork() as uow:
+            book, code = self.get_by_id(book_id)
             if book is None:
                 raise BookNotFoundError('Book not found for return.')
             if not book.is_borrowed:
                 raise BookReturnError()
-
             book.return_book()
-            uow.repo.update(book, book_id, uow.session)
+            self.repo.update(book, book_id, uow.session)
         return book, {'message': f'Book with title \'{book.title}\' is now available for borrowing.'}, 200
