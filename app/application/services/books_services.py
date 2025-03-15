@@ -23,10 +23,9 @@ class BooksServices:
     def add(self, entity: Book) -> Tuple[Book, int]:
         with UnitOfWork() as uow:
             book_entity = self.repo.insert(entity, uow.session)
-            if book_entity:
-                return book_entity, 200
-            else:
+            if not book_entity:
                 raise BookNotFoundError()
+            return book_entity, 200
 
     def borrow(self, book_id: int, member_id: int) -> tuple[Optional[Book], dict, int]:
         with UnitOfWork() as uow:
@@ -55,7 +54,7 @@ class BooksServices:
         with UnitOfWork() as uow:
             books = self.repo.get_all_books_for_member(id, uow.session)
         if not books:
-            return 'No books available.'
+            return 'No books available.', 200
         return books, 200
 
     def get_by_id(self, id: int) -> tuple[Book, int]:

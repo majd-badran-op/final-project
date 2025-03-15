@@ -9,4 +9,4 @@ class BorrowView(MethodView):
 
     def post(self, book_id: int, member_id: int) -> Response:
         book, message, status_code = self.books_service.borrow(book_id, member_id)
-        return make_response(jsonify({'message': message, 'book': book.__dict__}), status_code)
+        return make_response(jsonify({'code': status_code, 'message': message, 'book': book.__dict__}))

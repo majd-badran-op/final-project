@@ -24,12 +24,13 @@ class MembersServices:
                 member_entity = self.repo.insert(entity, uow.session)
                 if not member_entity:
                     raise FailedToAddMemberError()
+                return member_entity, 200
+
             except IntegrityError as e:
                 if 'unique constraint' in str(e.orig):
                     raise EmailAlreadyExistsError('The email address already exists.')
                 else:
                     raise e
-        return member_entity, 200
 
     def get_all(self) -> tuple[list[Member], int]:
         with UnitOfWork() as uow:
@@ -62,17 +63,23 @@ class MembersServices:
                 result = self.book_serves.get_all_books_for_member(id)
                 books = result[0]
                 if not isinstance(books, str):
-                    raise ValueError(f'Cannot delete member with ID {id} because they have books.')
-            result = self.repo.delete(id, uow.session)
-            if not result:
+                    raise ValueError(
+                        f'Cannot delete member with ID {id} because he still has {len(books)} '
+                        'borrowed books.'
+                    )
+
+            delete_result = self.repo.delete(id, uow.session)
+            if not delete_result:
                 raise FailedToDeleteMemberError()
         return {'message': 'Member deleted successfully'}, 200
 
-    def get_member_books(self, id: int) -> tuple[Member, list[Book], int]:
-        member: Member | None = self.get_by_id(id)
+    def get_member_books(self, id: int) -> tuple[Member, list[Book] | str, int]:
+        result = self.get_by_id(id)
+        member = result[0]
         if not member:
             raise MemberNotFoundError()
-        member_books = self.book_serves.get_all_books_for_member(id)
+        result2 = self.book_serves.get_all_books_for_member(id)
+        member_books = result2[0]
         if not member_books:
             raise MemberBooksNotFoundError()
         return member, member_books, 200

@@ -1,20 +1,9 @@
 from flask import json, Response
-from werkzeug.exceptions import HTTPException
 from psycopg2 import OperationalError, IntegrityError as Psycopg2IntegrityError
 from sqlalchemy.exc import IntegrityError as SQLAlchemyIntegrityError
 
 
 def register_error_handlers(app):
-    @app.errorhandler(HTTPException)
-    def handle_http_exception(e: HTTPException):
-        response = e.get_response()
-        response.data = json.dumps({
-            'code': e.code,
-            'name': e.name,
-            'description': e.description,
-        }).encode('utf-8')
-        response.content_type = 'application/json'
-        return response
 
     @app.errorhandler(OperationalError)
     def handle_database_exception(e: OperationalError):

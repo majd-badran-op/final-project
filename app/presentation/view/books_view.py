@@ -12,22 +12,20 @@ class BookView(MethodView):
     def get(self, book_id: Optional[int] = None) -> Response:
         if book_id is None:
             books, status_code = self.books_service.get_all()
-            response = make_response(jsonify([book.__dict__ for book in books]), status_code)
-            return response
+            return make_response(jsonify({'code': status_code, 'books': books}))
         else:
             book, status_code = self.books_service.get_by_id(book_id)
-            response = make_response(jsonify(book.__dict__), status_code)
-            return response
+            return make_response(jsonify({'code': status_code, 'book': book}))
 
     def post(self) -> Response:
         data = request.get_json()
-        entity = Book(
+        book = Book(
             id=None,
             title=data.get('title'),
             author=data.get('author'),
         )
-        entity, status_code = self.books_service.add(entity)
-        return make_response(jsonify(entity.__dict__), status_code)
+        book, status_code = self.books_service.add(book)
+        return make_response(jsonify({'code': status_code, 'books': book}))
 
     def put(self, book_id: int) -> Response:
         data = request.get_json()
@@ -37,12 +35,8 @@ class BookView(MethodView):
             author=data.get('author'),
         )
         message, status_code = self.books_service.update(book_id, entity)
-        return make_response(jsonify({'message': message}), status_code)
+        return make_response(jsonify({'code': status_code, 'message': message}))
 
     def delete(self, book_id: int) -> Response:
         message, status_code = self.books_service.delete(book_id)
-        return make_response(jsonify({'message': message}), status_code)
-
-    def post_borrow(self, book_id: int, member_id: int) -> Response:
-        book, message, status_code = self.books_service.borrow(book_id, member_id)
-        return make_response(jsonify({'message': message, 'book': book.__dict__}), status_code)
+        return make_response(jsonify({'code': status_code, 'message': message}))
