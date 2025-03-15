@@ -66,7 +66,7 @@ def register_error_handlers(app):
     def handle_generic_exception(e: Exception):
         response = {
             'code': 500,
-            'name': 'InternalServerError',
+            'name': 'CustomError',
             'description': str(e),
         }
         return Response(

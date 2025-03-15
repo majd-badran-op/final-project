@@ -3,10 +3,10 @@ from app.infrastructure.repositories.books_repo import BooksRepo
 from app.infrastructure.repositories.unit_of_work import UnitOfWork
 from app.domain.entities.book_entity import Book
 from .members_services import MembersServices
+from app.domain.exceptions.member_exceptions import MemberNotFoundError
 from app.domain.exceptions.book_exception import (
     BookNotFoundError,
     BookAlreadyBorrowedError,
-    MemberNotFoundError,
     BookReturnError,
     FailedToDeleteBookError
 )

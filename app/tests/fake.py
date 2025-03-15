@@ -1,19 +1,19 @@
-import factory
+from factory import Factory, Faker
 from app.domain.entities.book_entity import Book
 from app.domain.entities.member_entity import Member
 
 
-class BookFactory(factory.Factory):
+class BookFactory(Factory):
     class Meta:
         model = Book
     id = None
-    title = factory.Faker('word')
-    author = factory.Faker('name')
+    title = Faker('sentence')
+    author = Faker('name')
 
 
-class MemberFactory(factory.Factory):
+class MemberFactory(Factory):
     class Meta:
         model = Member
     id = None
-    name = factory.Faker('name')
-    email = factory.Faker('email')
+    name = Faker('name')
+    email = Faker('email')

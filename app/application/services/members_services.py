@@ -1,7 +1,9 @@
 from app.infrastructure.repositories.members_repo import MembersRepo
+from app.infrastructure.repositories.books_repo import BooksRepo
 from app.infrastructure.repositories.unit_of_work import UnitOfWork
 from app.domain.entities.member_entity import Member
 from app.domain.entities.book_entity import Book
+from app.infrastructure.repositories.books_repo import BaseRepo
 from app.domain.exceptions.member_exceptions import (
     MemberNotFoundError,
     FailedToAddMemberError,
@@ -13,6 +15,7 @@ from app.domain.exceptions.member_exceptions import (
 class MembersServices:
     def __init__(self) -> None:
         self.repo = MembersRepo()
+        self.book_repo = BooksRepo()
 
     def add(self, entity: Member) -> tuple[Member, int]:
         with UnitOfWork(self.repo) as uow:
@@ -45,22 +48,24 @@ class MembersServices:
 
     def delete(self, id: int) -> tuple[dict, int]:
         with UnitOfWork(self.repo) as uow:
-            member_to_delete, books, code = self.get_member_books(id)
+            member_to_delete = self.get_by_id(id)
             if not member_to_delete:
                 raise MemberNotFoundError()
-            if books:
-                raise ValueError(f'Cannot delete member with ID {id} because they have books.')
+            else:
+                books = self.book_repo.get_all_books_for_member(id, uow.session)
+                if books:
+                    raise ValueError(f'Cannot delete member with ID {id} because they have books.')
             result = uow.repo.delete(id, uow.session)
             if not result:
                 raise FailedToDeleteMemberError()
         return {'message': 'Member deleted successfully'}, 200
 
     def get_member_books(self, id: int) -> tuple[Member, list[Book], int]:
-        with UnitOfWork(self.repo) as uow:
-            member: Member | None = uow.repo.get(id, uow.session)
+        with UnitOfWork(BaseRepo) as uow:
+            member: Member | None = self.repo.get(id, uow.session)
             if not member:
                 raise MemberNotFoundError()
-            member_books: list[Book] | None = self.repo.get_all_books_for_member(id, uow.session)
+            member_books: list[Book] | None = uow.repo.get_all_books_for_member(id, uow.session)
         if not member_books:
             raise MemberBooksNotFoundError()
         return member, member_books, 200

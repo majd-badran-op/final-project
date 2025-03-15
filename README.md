@@ -46,14 +46,14 @@ curl -X GET http://localhost:5000/books/165
 
 #### Update a book
 ```sh
-curl -X PUT http://localhost:5000/books/1 \
+curl -X PUT http://localhost:5000/books/192 \
     -H "Content-Type: application/json" \
     -d '{"title": "Updated Book", "author": "Updated Author"}'
 ```
 
 #### Delete a book
 ```sh
-curl -X DELETE http://localhost:5000/books/163
+curl -X DELETE http://localhost:5000/books/184
 ```
 
 ### Borrowing & Returning Books
@@ -82,7 +82,7 @@ curl -X POST http://localhost:5000/members \
 
 #### Get a member by ID
 ```sh
-curl -X GET http://localhost:5000/members/1
+curl -X GET http://localhost:5000/members/85
 ```
 
 #### Update a member
@@ -94,7 +94,7 @@ curl -X PUT http://localhost:5000/members/1 \
 
 #### Delete a member
 ```sh
-curl -X DELETE http://localhost:5000/members/1
+curl -X DELETE http://localhost:5000/members/85
 ```
 
 #### List all books borrowed by a member
