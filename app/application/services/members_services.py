@@ -8,9 +8,13 @@ from app.domain.exceptions.member_exceptions import (
     MemberNotFoundError,
     FailedToAddMemberError,
     FailedToDeleteMemberError,
-    MemberBooksNotFoundError,
     EmailAlreadyExistsError
 )
+from app.domain.exceptions.book_exception import (
+    BookNotFoundError,
+    BookAlreadyBorrowedError
+)
+from typing import Any
 
 
 class MembersServices:
@@ -21,8 +25,7 @@ class MembersServices:
     def add(self, entity: Member) -> tuple[Member, int]:
         with UnitOfWork() as uow:
             try:
-                member_entity = self.repo.insert(entity, uow.session)
-                if not member_entity:
+                if not (member_entity := self.repo.insert(entity, uow.session)):
                     raise FailedToAddMemberError()
                 return member_entity, 200
 
@@ -34,52 +37,56 @@ class MembersServices:
 
     def get_all(self) -> tuple[list[Member], int]:
         with UnitOfWork() as uow:
-            members = self.repo.get_all(uow.session)
-        if not members:
-            raise MemberNotFoundError('No members found')
+            if not (members := self.repo.get_all(uow.session)):
+                raise MemberNotFoundError('No members found')
         return members, 200
 
     def get_by_id(self, id: str) -> tuple[Member, int]:
         with UnitOfWork() as uow:
-            member_entity: Member | None = self.repo.get(id, uow.session)
-        if not member_entity:
-            raise MemberNotFoundError()
+            if not (member_entity := self.repo.get(id, uow.session)):
+                raise MemberNotFoundError()
         return member_entity, 200
 
-    def update(self, id: str, entity: Member) -> tuple[dict, int]:
+    def update(self, id: str, entity: Member) -> tuple[dict[str, str], int]:
         with UnitOfWork() as uow:
-            existing_member = self.get_by_id(id)
-            if not existing_member:
+            if not (self.get_by_id(id)[0]):
                 raise MemberNotFoundError()
             self.repo.update(entity, id, uow.session)
         return {'message': 'Member updated successfully'}, 200
 
-    def delete(self, id: str) -> tuple[dict, int]:
+    def delete(self, id: str) -> tuple[dict[str, str], int]:
         with UnitOfWork() as uow:
-            member_to_delete = self.get_by_id(id)
-            if not member_to_delete:
+            if not (self.get_by_id(id)[0]):
                 raise MemberNotFoundError()
-            else:
-                result = self.book_serves.get_all_books_for_member(id)
-                books = result[0]
-                if not isinstance(books, str):
-                    raise ValueError(
-                        f'Cannot delete member with ID {id} because he still has {len(books)} '
-                        'borrowed books.'
-                    )
+            elif not isinstance((books := self.book_serves.get_all_books_for_member(id)[0]), str):
+                raise ValueError(
+                    f'Cannot delete member with ID {id} because they still have {len(books)} '
+                    'borrowed books.'
+                )
 
-            delete_result = self.repo.delete(id, uow.session)
-            if not delete_result:
+            if not self.repo.delete(id, uow.session):
                 raise FailedToDeleteMemberError()
         return {'message': 'Member deleted successfully'}, 200
 
-    def get_member_books(self, id: str) -> tuple[Member, list[Book] | str, int]:
-        result = self.get_by_id(id)
-        member = result[0]
-        if not member:
+    def get_member_books(self, id: str) -> tuple[list[dict[str, Any]] | str, int]:
+        if not (self.get_by_id(id)[0]):
             raise MemberNotFoundError()
-        result2 = self.book_serves.get_all_books_for_member(id)
-        member_books = result2[0]
+
+        member_books = self.book_serves.get_all_books_for_member(id)[0]
+
         if not member_books:
-            raise MemberBooksNotFoundError()
-        return member, member_books, 200
+            return member_books, 200
+        return member_books, 200
+
+    def borrow(self, book_id: str, member_id: str) -> tuple[Book | None, dict[str, str], int]:
+        with UnitOfWork() as uow:
+            if (book := self.book_serves.get_by_id(book_id)[0]) is None:
+                raise BookNotFoundError()
+            if book.is_borrowed:
+                raise BookAlreadyBorrowedError()
+            if (member := self.get_by_id(member_id)[0]) is None or member.id is None:
+                raise MemberNotFoundError()
+            book.borrow(member.id)
+            self.book_serves.update(book_id, book)
+            uow.commit()
+        return book, {'message': f'{book.title} borrowed successfully by {member.name}'}, 200

@@ -53,13 +53,13 @@ curl -X PUT http://localhost:5000/books/258 \
 
 #### Delete a book
 ```sh
-curl -X DELETE http://localhost:5000/books/114
+curl -X DELETE http://localhost:5000/books/9
 ```
 
 ### Borrowing & Returning Books
 #### Borrow a book
 ```sh
-curl -X POST http://localhost:5000/borrow/216/85
+curl -X POST http://localhost:5000/borrow/4/8822b74b-185f-4f7d-93d5-267873749473
 ```
 
 #### Return a borrowed book
@@ -94,12 +94,12 @@ curl -X PUT http://localhost:5000/members/161 \
 
 #### Delete a member
 ```sh
-curl -X DELETE http://localhost:5000/members/114
+curl -X DELETE http://localhost:5000/members/8822b74b-185f-4f7d-93d5-267873749473
 ```
 
 #### List all books borrowed by a member
 ```sh
-curl -X GET http://localhost:5000/member-books/114
+curl -X GET http://localhost:5000/member-books/8822b74b-185f-4f7d-93d5-267873749473
 ```
 
 ## Running Tests

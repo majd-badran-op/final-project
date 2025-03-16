@@ -8,5 +8,5 @@ class MemberBookView(MethodView):
         self.books_service = MembersServices()
 
     def get(self, member_id: str) -> Response:
-        member, books, status_code = self.books_service.get_member_books(member_id)
-        return make_response(jsonify({'code': status_code, 'member': member, 'books': books}))
+        books, status_code = self.books_service.get_member_books(member_id)
+        return make_response(jsonify({'code': status_code, 'books': books}))

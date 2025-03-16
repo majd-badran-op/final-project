@@ -1,5 +1,4 @@
-from dataclasses import dataclass
-from typing import Optional
+from dataclasses import dataclass, field
 from datetime import datetime
 from .base_entity import BaseEntity
 
@@ -8,16 +7,16 @@ from .base_entity import BaseEntity
 class Book(BaseEntity):
     title: str
     author: str
-    is_borrowed: bool = False
-    borrowed_date: Optional[datetime] = None
-    borrowed_by: Optional[int] = None
+    is_borrowed: bool = field(default=False)
+    borrowed_date: datetime | None = field(default=None)
+    borrowed_by: str | None = field(default=None)
 
-    def borrow(self, member: int):
+    def borrow(self, member: str) -> None:
         self.is_borrowed = True
         self.borrowed_date = datetime.now()
         self.borrowed_by = member
 
-    def return_book(self):
+    def return_book(self) -> None:
         self.is_borrowed = False
         self.borrowed_date = None
         self.borrowed_by = None

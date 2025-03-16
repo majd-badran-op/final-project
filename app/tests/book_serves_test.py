@@ -58,7 +58,7 @@ def test_delete_book_that_is_not_found(book_fixture):
     response = requests.delete(f'{BASE_URL}/{id}')
     print(response.text)
     response_json = response.json()
-    assert response_json == {'code': 500, 'description': 'Book not found', 'name': 'CustomError'}
+    assert response_json == {'code': 500, 'description': 'Book not found', 'name': 'BookNotFoundError'}
 
 
 def test_update_book_that_is_not_found(book_fixture):
@@ -67,4 +67,4 @@ def test_update_book_that_is_not_found(book_fixture):
     response = requests.put(f'{BASE_URL}/{id}', json=data)
     print(response.text)
     response_json = response.json()
-    assert response_json == {'code': 500, 'description': 'Book not found', 'name': 'CustomError'}
+    assert response_json == {'code': 500, 'description': 'Book not found', 'name': 'BookNotFoundError'}
