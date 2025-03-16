@@ -39,14 +39,14 @@ class MembersServices:
             raise MemberNotFoundError('No members found')
         return members, 200
 
-    def get_by_id(self, id: int) -> tuple[Member, int]:
+    def get_by_id(self, id: str) -> tuple[Member, int]:
         with UnitOfWork() as uow:
             member_entity: Member | None = self.repo.get(id, uow.session)
         if not member_entity:
             raise MemberNotFoundError()
         return member_entity, 200
 
-    def update(self, id: int, entity: Member) -> tuple[dict, int]:
+    def update(self, id: str, entity: Member) -> tuple[dict, int]:
         with UnitOfWork() as uow:
             existing_member = self.get_by_id(id)
             if not existing_member:
@@ -54,7 +54,7 @@ class MembersServices:
             self.repo.update(entity, id, uow.session)
         return {'message': 'Member updated successfully'}, 200
 
-    def delete(self, id: int) -> tuple[dict, int]:
+    def delete(self, id: str) -> tuple[dict, int]:
         with UnitOfWork() as uow:
             member_to_delete = self.get_by_id(id)
             if not member_to_delete:
@@ -73,7 +73,7 @@ class MembersServices:
                 raise FailedToDeleteMemberError()
         return {'message': 'Member deleted successfully'}, 200
 
-    def get_member_books(self, id: int) -> tuple[Member, list[Book] | str, int]:
+    def get_member_books(self, id: str) -> tuple[Member, list[Book] | str, int]:
         result = self.get_by_id(id)
         member = result[0]
         if not member:

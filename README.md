@@ -41,25 +41,25 @@ curl -X POST http://localhost:5000/books \
 
 #### Get a book by ID
 ```sh
-curl -X GET http://localhost:5000/books/165
+curl -X GET http://localhost:5000/books/213
 ```
 
 #### Update a book
 ```sh
-curl -X PUT http://localhost:5000/books/192 \
+curl -X PUT http://localhost:5000/books/258 \
     -H "Content-Type: application/json" \
     -d '{"title": "Updated Book", "author": "Updated Author"}'
 ```
 
 #### Delete a book
 ```sh
-curl -X DELETE http://localhost:5000/books/184
+curl -X DELETE http://localhost:5000/books/114
 ```
 
 ### Borrowing & Returning Books
 #### Borrow a book
 ```sh
-curl -X POST http://localhost:5000/borrow/162/85
+curl -X POST http://localhost:5000/borrow/216/85
 ```
 
 #### Return a borrowed book
@@ -77,7 +77,7 @@ curl -X GET http://localhost:5000/members
 ```sh
 curl -X POST http://localhost:5000/members \
     -H "Content-Type: application/json" \
-    -d '{"name": "Badran Majd", "email": "majd02@gmail.com"}'
+    -d '{"name": "Badran Majd", "email": "majdwwssdd02@gmail.com"}'
 ```
 
 #### Get a member by ID
@@ -87,19 +87,19 @@ curl -X GET http://localhost:5000/members/85
 
 #### Update a member
 ```sh
-curl -X PUT http://localhost:5000/members/1 \
+curl -X PUT http://localhost:5000/members/161 \
     -H "Content-Type: application/json" \
     -d '{"name": "John Updated", "email": "johnupdated@example.com"}'
 ```
 
 #### Delete a member
 ```sh
-curl -X DELETE http://localhost:5000/members/85
+curl -X DELETE http://localhost:5000/members/114
 ```
 
 #### List all books borrowed by a member
 ```sh
-curl -X GET http://localhost:5000/member-books/85
+curl -X GET http://localhost:5000/member-books/114
 ```
 
 ## Running Tests

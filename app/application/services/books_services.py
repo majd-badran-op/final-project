@@ -27,7 +27,7 @@ class BooksServices:
                 raise BookNotFoundError()
             return book_entity, 200
 
-    def borrow(self, book_id: int, member_id: int) -> tuple[Optional[Book], dict, int]:
+    def borrow(self, book_id: str, member_id: str) -> tuple[Optional[Book], dict, int]:
         with UnitOfWork() as uow:
             book, code = self.get_by_id(book_id)
             result = self.member_serves.get_by_id(member_id)
@@ -50,21 +50,21 @@ class BooksServices:
             raise BookNotFoundError('No books available.')
         return books, 200
 
-    def get_all_books_for_member(self, id: int) -> tuple[list[Book] | str, int]:
+    def get_all_books_for_member(self, id: str) -> tuple[list[Book] | str, int]:
         with UnitOfWork() as uow:
             books = self.repo.get_all_books_for_member(id, uow.session)
         if not books:
             return 'No books available.', 200
         return books, 200
 
-    def get_by_id(self, id: int) -> tuple[Book, int]:
+    def get_by_id(self, id: str) -> tuple[Book, int]:
         with UnitOfWork() as uow:
             book_entity: Optional[Book] = self.repo.get(id, uow.session)
         if book_entity is None:
             raise BookNotFoundError()
         return book_entity, 200
 
-    def update(self, id: int, entity: Book) -> tuple[dict, int]:
+    def update(self, id: str, entity: Book) -> tuple[dict, int]:
         with UnitOfWork() as uow:
             book_entity, code = self.get_by_id(id)
             if book_entity is None:
@@ -73,7 +73,7 @@ class BooksServices:
             self.repo.update(book_entity, id, uow.session)
         return {'message': 'Book updated successfully'}, 200
 
-    def delete(self, id: int) -> tuple[dict, int]:
+    def delete(self, id: str) -> tuple[dict, int]:
         with UnitOfWork() as uow:
             book_to_delete, code = self.get_by_id(id)
             if book_to_delete is None:
@@ -83,7 +83,7 @@ class BooksServices:
                 raise FailedToDeleteBookError()
         return {'message': 'Book deleted successfully'}, 200
 
-    def return_book(self, book_id: int) -> tuple[Optional[Book], dict, int]:
+    def return_book(self, book_id: str) -> tuple[Optional[Book], dict, int]:
         with UnitOfWork() as uow:
             book, code = self.get_by_id(book_id)
             if book is None:

@@ -9,7 +9,7 @@ class BookView(MethodView):
     def __init__(self) -> None:
         self.books_service = BooksServices()
 
-    def get(self, book_id: Optional[int] = None) -> Response:
+    def get(self, book_id: Optional[str] = None) -> Response:
         if book_id is None:
             books, status_code = self.books_service.get_all()
             return make_response(jsonify({'code': status_code, 'books': books}))
@@ -27,7 +27,7 @@ class BookView(MethodView):
         book, status_code = self.books_service.add(book)
         return make_response(jsonify({'code': status_code, 'books': book}))
 
-    def put(self, book_id: int) -> Response:
+    def put(self, book_id: str) -> Response:
         data = request.get_json()
         entity = Book(
             id=None,
@@ -37,6 +37,6 @@ class BookView(MethodView):
         message, status_code = self.books_service.update(book_id, entity)
         return make_response(jsonify({'code': status_code, 'message': message}))
 
-    def delete(self, book_id: int) -> Response:
+    def delete(self, book_id: str) -> Response:
         message, status_code = self.books_service.delete(book_id)
         return make_response(jsonify({'code': status_code, 'message': message}))

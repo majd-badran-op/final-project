@@ -14,7 +14,7 @@ def book_fixture():
 
 
 BASE_URL = 'http://localhost:5000/members'
-id: int
+id: str
 
 
 def test_create_member(member_fixture):

@@ -9,7 +9,7 @@ def book_fixture():
 
 
 BASE_URL = 'http://localhost:5000/books'
-id: int
+id: str
 
 
 def test_create_book(book_fixture):

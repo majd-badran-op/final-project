@@ -9,7 +9,7 @@ class MemberView(MethodView):
     def __init__(self) -> None:
         self.members_service = MembersServices()
 
-    def get(self, member_id: Optional[int] = None) -> Response:
+    def get(self, member_id: Optional[str] = None) -> Response:
         if member_id:
             member, status_code = self.members_service.get_by_id(member_id)
             return make_response(jsonify({'code': status_code, 'member': member}))
@@ -27,7 +27,7 @@ class MemberView(MethodView):
         member, status_code = self.members_service.add(member)
         return make_response(jsonify({'code': status_code, 'member': member}))
 
-    def put(self, member_id: int) -> Response:
+    def put(self, member_id: str) -> Response:
         data = request.get_json()
         member = Member(
             id=None,
@@ -37,6 +37,6 @@ class MemberView(MethodView):
         message, status_code = self.members_service.update(member_id, member)
         return make_response(jsonify({'code': status_code, 'message': message}))
 
-    def delete(self, member_id: int) -> Response:
+    def delete(self, member_id: str) -> Response:
         message, status_code = self.members_service.delete(member_id)
         return make_response(jsonify({'code': status_code, 'message': message}))
