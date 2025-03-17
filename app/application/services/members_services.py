@@ -47,11 +47,15 @@ class MembersServices:
                 raise MemberNotFoundError()
         return member_entity, 200
 
-    def update(self, id: str, entity: Member) -> tuple[dict[str, str], int]:
+    def update(self, id: str, entity: dict[str, Any]) -> tuple[dict[str, Any], int]:
+        cleaned_entity: dict = {}
         with UnitOfWork() as uow:
             if not (self.get_by_id(id)[0]):
                 raise MemberNotFoundError()
-            self.repo.update(entity, id, uow.session)
+            for key, value in entity.items():
+                if value is not None:
+                    cleaned_entity[key] = value
+            self.repo.update(cleaned_entity, id, uow.session)
         return {'message': 'Member updated successfully'}, 200
 
     def delete(self, id: str) -> tuple[dict[str, str], int]:
@@ -79,14 +83,16 @@ class MembersServices:
         return member_books, 200
 
     def borrow(self, book_id: str, member_id: str) -> tuple[Book | None, dict[str, str], int]:
-        with UnitOfWork() as uow:
+        to_update_entity: dict = {}
+        with UnitOfWork():
             if (book := self.book_serves.get_by_id(book_id)[0]) is None:
                 raise BookNotFoundError()
             if book.is_borrowed:
                 raise BookAlreadyBorrowedError()
             if (member := self.get_by_id(member_id)[0]) is None or member.id is None:
                 raise MemberNotFoundError()
-            book.borrow(member.id)
-            self.book_serves.update(book_id, book)
-            uow.commit()
+            book.borrow(member_id)
+            for key, value in vars(book).items():
+                to_update_entity[key] = value
+            self.book_serves.update(book_id, to_update_entity)
         return book, {'message': f'{book.title} borrowed successfully by {member.name}'}, 200

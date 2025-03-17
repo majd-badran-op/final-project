@@ -17,7 +17,6 @@ class BooksServices:
         with UnitOfWork() as uow:
             if (book_entity := self.repo.insert(entity, uow.session)) is None:
                 raise BookNotFoundError()
-            uow.commit()
             return book_entity, 200
 
     def get_all(self) -> tuple[list[Book], int]:
@@ -37,13 +36,15 @@ class BooksServices:
                 raise BookNotFoundError()
         return book_entity, 200
 
-    def update(self, id: str, entity: Book) -> tuple[dict[str, str], int]:
+    def update(self, id: str, entity: dict[str, Any]) -> tuple[dict[str, Any], int]:
+        cleaned_entity: dict = {}
         with UnitOfWork() as uow:
-            if (book_entity := self.get_by_id(id)[0]) is None:
+            if not (self.get_by_id(id)[0]):
                 raise BookNotFoundError()
-            book_entity.copy_from(entity)
-            self.repo.update(book_entity, id, uow.session)
-            uow.commit()
+            for key, value in entity.items():
+                if value is not None:
+                    cleaned_entity[key] = value
+            self.repo.update(cleaned_entity, id, uow.session)
         return {'message': 'Book updated successfully'}, 200
 
     def delete(self, id: str) -> tuple[dict[str, str], int]:
@@ -52,16 +53,17 @@ class BooksServices:
                 raise BookNotFoundError()
             if not self.repo.delete(id, uow.session):
                 raise FailedToDeleteBookError()
-            uow.commit()
         return {'message': 'Book deleted successfully'}, 200
 
     def return_book(self, book_id: str) -> tuple[Book | None, dict[str, str], int]:
         with UnitOfWork() as uow:
+            updated_entity: dict = {}
             if (book := self.get_by_id(book_id)[0]) is None:
                 raise BookNotFoundError('Book not found for return.')
             if not book.is_borrowed:
                 raise BookReturnError()
             book.return_book()
-            self.repo.update(book, book_id, uow.session)
-            uow.commit()
+            for key, value in vars(book).items():
+                updated_entity[key] = value
+            self.repo.update(updated_entity, book_id, uow.session)
         return book, {'message': f'Book with title \'{book.title}\' is now available for borrowing.'}, 200

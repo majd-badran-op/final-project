@@ -27,13 +27,13 @@ class MemberView(MethodView):
         member, status_code = self.members_service.add(member)
         return make_response(jsonify({'code': status_code, 'member': member}))
 
-    def put(self, member_id: str) -> Response:
+    def patch(self, member_id: str) -> Response:
         data = request.get_json()
-        member = Member(
-            id=None,
-            name=data.get('name'),
-            email=data.get('email'),
-        )
+        member: dict = {
+            "id": None,
+            "name": data.get("name"),
+            "email": data.get("email"),
+        }
         message, status_code = self.members_service.update(member_id, member)
         return make_response(jsonify({'code': status_code, 'message': message}))
 

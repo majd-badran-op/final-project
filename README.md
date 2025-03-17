@@ -87,9 +87,9 @@ curl -X GET http://localhost:5000/members/85
 
 #### Update a member
 ```sh
-curl -X PUT http://localhost:5000/members/161 \
+curl -X PATCH http://localhost:5000/members/8822b74b-185f-4f7d-93d5-267873749473 \
     -H "Content-Type: application/json" \
-    -d '{"name": "John Updated", "email": "johnupdated@example.com"}'
+    -d '{"name": "majd badran"}'
 ```
 
 #### Delete a member

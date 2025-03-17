@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from typing import Optional, Type
-from app.infrastructure.database.con import get_session
+from app.infrastructure.database.con import engine
 
 
 class UnitOfWork:
@@ -8,15 +8,12 @@ class UnitOfWork:
         self.session: Session
 
     def __enter__(self) -> 'UnitOfWork':
-        self.session = get_session()
-        self.transaction = self.session.begin()
+        self.session = Session(engine)
         return self
 
     def commit(self) -> None:
         if self.session:
             self.session.commit()
-        else:
-            self.rollback()
 
     def rollback(self) -> None:
         if self.session:
@@ -26,7 +23,7 @@ class UnitOfWork:
                  exc_value: Optional[BaseException], traceback: Optional[Type[BaseException]]) -> None:
         if exc_type:
             self.rollback()
-        if exc_type is None:
+        else:
             self.commit()
         if self.session:
             self.session.close()

@@ -27,13 +27,13 @@ class BookView(MethodView):
         book, status_code = self.books_service.add(book)
         return make_response(jsonify({'code': status_code, 'books': book}))
 
-    def put(self, book_id: str) -> Response:
+    def patch(self, book_id: str) -> Response:
         data = request.get_json()
-        entity = Book(
-            id=None,
-            title=data.get('title'),
-            author=data.get('author'),
-        )
+        entity: dict = {
+            'id': None,
+            'title': data.get('title'),
+            'author': data.get('author'),
+        }
         message, status_code = self.books_service.update(book_id, entity)
         return make_response(jsonify({'code': status_code, 'message': message}))
 

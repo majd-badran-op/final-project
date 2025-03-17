@@ -10,7 +10,7 @@ from .view.member_book import MemberBookView
 def register_routes(app: Flask) -> None:
     book_view = BookView.as_view('book_view')
     app.add_url_rule('/books', view_func=book_view, methods=['GET', 'POST'])
-    app.add_url_rule('/books/<string:book_id>', view_func=book_view, methods=['GET', 'PUT', 'DELETE'])
+    app.add_url_rule('/books/<string:book_id>', view_func=book_view, methods=['GET', 'patch', 'DELETE'])
 
     borrow_view = BorrowView.as_view('borrow_view')
     app.add_url_rule('/borrow/<string:book_id>/<string:member_id>', view_func=borrow_view, methods=['POST'])
@@ -23,7 +23,7 @@ def register_routes(app: Flask) -> None:
 
     member_view = MemberView.as_view('member_view')
     app.add_url_rule('/members', view_func=member_view, methods=['GET', 'POST'])
-    app.add_url_rule('/members/<string:member_id>', view_func=member_view, methods=['GET', 'PUT', 'DELETE'])
+    app.add_url_rule('/members/<string:member_id>', view_func=member_view, methods=['GET', 'patch', 'DELETE'])
 
 
 def setup_cors(app: Flask) -> None:

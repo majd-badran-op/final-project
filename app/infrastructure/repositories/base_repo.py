@@ -30,8 +30,8 @@ class BaseRepo(Generic[E]):
         result = session.execute(sql).fetchone()
         return self.entity(**result._mapping) if result else None
 
-    def update(self, entity: E, id: str, session: Session) -> bool:
-        data = {key: value for key, value in vars(entity).items() if key != 'id'}
+    def update(self, entity: dict[str, Any], id: str, session: Session) -> bool:
+        data = {key: value for key, value in entity.items() if key != 'id'}
         sql = update(self.table).where(self.table.c.id == id).values(**data)
         result: CursorResult[Any] = session.execute(sql)
         return result.rowcount > 0

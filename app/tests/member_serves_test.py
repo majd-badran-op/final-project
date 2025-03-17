@@ -44,7 +44,7 @@ def test_get_member_by_id():
 def test_update_member(member_fixture):
     global id
     data = {'name': 'Updated Name', 'email': 'updated@example.com'}
-    response = requests.put(f'{BASE_URL}/{id}', json=data)
+    response = requests.patch(f'{BASE_URL}/{id}', json=data)
     response_json = response.json()
     assert response_json['code'] == 200
     assert response_json['message'] == {'message': 'Member updated successfully'}

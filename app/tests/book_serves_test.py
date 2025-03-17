@@ -39,7 +39,7 @@ def test_get_book_by_id():
 def test_update_book(book_fixture):
     global id
     data = {'title': 'Updated Title', 'author': 'Updated Author'}
-    response = requests.put(f'{BASE_URL}/{id}', json=data)
+    response = requests.patch(f'{BASE_URL}/{id}', json=data)
     assert response.status_code == 200
     response_json = response.json()
     assert response_json['message'] == {'message': 'Book updated successfully'}
@@ -64,7 +64,7 @@ def test_delete_book_that_is_not_found(book_fixture):
 def test_update_book_that_is_not_found(book_fixture):
     global id
     data = {'title': 'Updated Title', 'author': 'Updated Author'}
-    response = requests.put(f'{BASE_URL}/{id}', json=data)
+    response = requests.patch(f'{BASE_URL}/{id}', json=data)
     print(response.text)
     response_json = response.json()
     assert response_json == {'code': 500, 'description': 'Book not found', 'name': 'BookNotFoundError'}
