@@ -64,7 +64,7 @@ curl -X POST http://localhost:5000/borrow/4/8822b74b-185f-4f7d-93d5-267873749473
 
 #### Return a borrowed book
 ```sh
-curl -X POST http://localhost:5000/return/162
+curl -X POST http://localhost:5000/return/4
 ```
 
 ### Members
@@ -77,7 +77,7 @@ curl -X GET http://localhost:5000/members
 ```sh
 curl -X POST http://localhost:5000/members \
     -H "Content-Type: application/json" \
-    -d '{"name": "Badran Majd", "email": "majdwwssdd02@gmail.com"}'
+    -d '{"name": "Badran", "email": "test@gmail.com"}'
 ```
 
 #### Get a member by ID

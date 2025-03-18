@@ -15,14 +15,13 @@ class BooksServices:
 
     def add(self, entity: Book) -> tuple[Book, int]:
         with UnitOfWork() as uow:
-            if (book_entity := self.repo.insert(entity, uow.session)) is None:
-                raise BookNotFoundError()
+            book_entity = self.repo.insert(entity, uow.session)
             return book_entity, 200
 
-    def get_all(self) -> tuple[list[Book], int]:
+    def get_all(self) -> tuple[list[Book] | str, int]:
         with UnitOfWork() as uow:
             if not (books := self.repo.get_all(uow.session)):
-                raise BookNotFoundError('No books available.')
+                return 'No books found', 200
         return books, 200
 
     def get_all_books_for_member(self, id: str) -> tuple[list[dict[str, Any]], int] | tuple[str, int]:

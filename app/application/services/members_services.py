@@ -3,16 +3,14 @@ from .books_services import BooksServices
 from app.infrastructure.repositories.unit_of_work import UnitOfWork
 from app.domain.entities.member_entity import Member
 from app.domain.entities.book_entity import Book
-from sqlalchemy.exc import IntegrityError
 from app.domain.exceptions.member_exceptions import (
     MemberNotFoundError,
-    FailedToAddMemberError,
     FailedToDeleteMemberError,
     EmailAlreadyExistsError
 )
 from app.domain.exceptions.book_exception import (
     BookNotFoundError,
-    BookAlreadyBorrowedError
+    BookAlreadyBorrowedError,
 )
 from typing import Any
 
@@ -24,22 +22,18 @@ class MembersServices:
 
     def add(self, entity: Member) -> tuple[Member, int]:
         with UnitOfWork() as uow:
-            try:
-                if not (member_entity := self.repo.insert(entity, uow.session)):
-                    raise FailedToAddMemberError()
-                return member_entity, 200
+            check_email: bool = self.repo.check_email(entity.email, uow.session)
+            if check_email:
+                if (member_entity := self.repo.insert(entity, uow.session)):
+                    return member_entity, 200
+            else:
+                raise EmailAlreadyExistsError('The email address already exists.')
 
-            except IntegrityError as e:
-                if 'unique constraint' in str(e.orig):
-                    raise EmailAlreadyExistsError('The email address already exists.')
-                else:
-                    raise e
-
-    def get_all(self) -> tuple[list[Member], int]:
+    def get_all(self) -> tuple[list[Member] | str, int]:
         with UnitOfWork() as uow:
             if not (members := self.repo.get_all(uow.session)):
-                raise MemberNotFoundError('No members found')
-        return members, 200
+                return 'No members found', 200
+            return members, 200
 
     def get_by_id(self, id: str) -> tuple[Member, int]:
         with UnitOfWork() as uow:
