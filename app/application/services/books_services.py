@@ -4,14 +4,20 @@ from app.domain.entities.book_entity import Book
 from app.domain.exceptions.book_exception import (
     BookNotFoundError,
     BookReturnError,
-    FailedToDeleteBookError
+    FailedToDeleteBookError,
+    BookAlreadyBorrowedError,
 )
+from app.domain.exceptions.member_exceptions import (
+    MemberNotFoundError
+)
+from .members_services import MembersServices
 from typing import Any
 
 
 class BooksServices:
     def __init__(self) -> None:
         self.repo = BooksRepo()
+        self.member_services = MembersServices()
 
     def add(self, entity: Book) -> tuple[Book, int]:
         with UnitOfWork() as uow:
@@ -53,6 +59,21 @@ class BooksServices:
             if not self.repo.delete(id, uow.session):
                 raise FailedToDeleteBookError()
         return {'message': 'Book deleted successfully'}, 200
+
+    def borrow(self, book_id: str, member_id: str) -> tuple[Book | None, dict[str, str], int]:
+        to_update_entity: dict = {}
+        with UnitOfWork():
+            if (book := self.get_by_id(book_id)[0]) is None:
+                raise BookNotFoundError()
+            if book.is_borrowed:
+                raise BookAlreadyBorrowedError()
+            if (member := self.member_services.get_by_id(member_id)[0]) is None or member.id is None:
+                raise MemberNotFoundError()
+            book.borrow(member_id)
+            for key, value in vars(book).items():
+                to_update_entity[key] = value
+            self.update(book_id, to_update_entity)
+        return book, {'message': f'{book.title} borrowed successfully by {member.name}'}, 200
 
     def return_book(self, book_id: str) -> tuple[Book | None, dict[str, str], int]:
         with UnitOfWork() as uow:

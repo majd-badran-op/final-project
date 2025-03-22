@@ -1,16 +1,10 @@
 from app.infrastructure.repositories.members_repo import MembersRepo
-from .books_services import BooksServices
 from app.infrastructure.repositories.unit_of_work import UnitOfWork
 from app.domain.entities.member_entity import Member
-from app.domain.entities.book_entity import Book
 from app.domain.exceptions.member_exceptions import (
     MemberNotFoundError,
     FailedToDeleteMemberError,
     EmailAlreadyExistsError
-)
-from app.domain.exceptions.book_exception import (
-    BookNotFoundError,
-    BookAlreadyBorrowedError,
 )
 from typing import Any
 
@@ -18,7 +12,6 @@ from typing import Any
 class MembersServices:
     def __init__(self) -> None:
         self.repo = MembersRepo()
-        self.book_serves = BooksServices()
 
     def add(self, entity: Member) -> tuple[Member, int]:
         with UnitOfWork() as uow:
@@ -75,18 +68,3 @@ class MembersServices:
         if not member_books:
             return member_books, 200
         return member_books, 200
-
-    def borrow(self, book_id: str, member_id: str) -> tuple[Book | None, dict[str, str], int]:
-        to_update_entity: dict = {}
-        with UnitOfWork():
-            if (book := self.book_serves.get_by_id(book_id)[0]) is None:
-                raise BookNotFoundError()
-            if book.is_borrowed:
-                raise BookAlreadyBorrowedError()
-            if (member := self.get_by_id(member_id)[0]) is None or member.id is None:
-                raise MemberNotFoundError()
-            book.borrow(member_id)
-            for key, value in vars(book).items():
-                to_update_entity[key] = value
-            self.book_serves.update(book_id, to_update_entity)
-        return book, {'message': f'{book.title} borrowed successfully by {member.name}'}, 200

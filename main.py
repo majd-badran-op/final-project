@@ -1,13 +1,12 @@
-from flask import Flask
-from app.presentation.routes import register_routes
+from fastapi import FastAPI
+from app.presentation.routes.book_routes import book_router
+from app.presentation.routes.member_routes import member_router
 from app.presentation.exception_handler import register_error_handlers
-from app.presentation.routes import setup_cors
 
-app = Flask(__name__)
+app = FastAPI()
 
-setup_cors(app)
-register_routes(app)
+app.include_router(book_router, prefix='/v1/books', tags=['Books'])
+
+app.include_router(member_router, prefix='/v1/members', tags=['Members'])
+
 register_error_handlers(app)
-
-if __name__ == '__main__':
-    app.run(debug=True)

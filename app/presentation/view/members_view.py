@@ -1,42 +1,63 @@
-from typing import Optional
-from flask import jsonify, request, Response, make_response
-from flask.views import MethodView
+from fastapi.responses import JSONResponse
 from app.domain.entities.member_entity import Member
 from app.application.services.members_services import MembersServices
 
 
-class MemberView(MethodView):
+class MemberView:
     def __init__(self) -> None:
         self.members_service = MembersServices()
 
-    def get(self, member_id: Optional[str] = None) -> Response:
-        if member_id:
-            member, status_code = self.members_service.get_by_id(member_id)
-            return make_response(jsonify({'code': status_code, 'member': member}))
-        else:
-            members, status_code = self.members_service.get_all()
-            return make_response(jsonify({'code': status_code, 'member': members}))
-
-    def post(self) -> Response:
-        data = request.get_json()
-        member = Member(
-            id=None,
-            name=data.get('name'),
-            email=data.get('email'),
+    async def get_all_members(self) -> JSONResponse:
+        members, status_code = self.members_service.get_all()
+        return JSONResponse(
+            content={
+                'code': status_code,
+                'members': [member.to_dict() for member in members]
+            },
+            status_code=status_code
         )
+
+    async def get_member_by_id(self, member_id: str) -> JSONResponse:
+        member, status_code = self.members_service.get_by_id(member_id)
+        return JSONResponse(
+            content={
+                'code': status_code,
+                'member': member.to_dict()
+            },
+            status_code=status_code
+        )
+
+    async def add_member(self, member: Member) -> JSONResponse:
         member, status_code = self.members_service.add(member)
-        return make_response(jsonify({'code': status_code, 'member': member}))
+        return JSONResponse(
+            content={
+                'code': status_code,
+                'member': member.to_dict()
+            },
+            status_code=status_code
+        )
 
-    def patch(self, member_id: str) -> Response:
-        data = request.get_json()
-        member: dict = {
-            "id": None,
-            "name": data.get("name"),
-            "email": data.get("email"),
+    async def update_member(self, member_id: str, member: Member) -> JSONResponse:
+        member_data = {
+            'id': member_id,
+            'name': member.name,
+            'email': member.email,
         }
-        message, status_code = self.members_service.update(member_id, member)
-        return make_response(jsonify({'code': status_code, 'message': message}))
+        message, status_code = self.members_service.update(member_id, member_data)
+        return JSONResponse(
+            content={
+                'code': status_code,
+                'message': message
+            },
+            status_code=status_code
+        )
 
-    def delete(self, member_id: str) -> Response:
+    async def delete_member(self, member_id: str) -> JSONResponse:
         message, status_code = self.members_service.delete(member_id)
-        return make_response(jsonify({'code': status_code, 'message': message}))
+        return JSONResponse(
+            content={
+                'code': status_code,
+                'message': message
+            },
+            status_code=status_code
+        )

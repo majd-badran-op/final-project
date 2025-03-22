@@ -8,7 +8,7 @@ def book_fixture():
     return BookFactory()
 
 
-BASE_URL = 'http://localhost:5000/books'
+BASE_URL = 'http://localhost:8000/v1/books'
 id: str
 
 

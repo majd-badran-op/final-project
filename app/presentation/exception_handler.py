@@ -1,63 +1,54 @@
-from flask import json, Response, Flask
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import JSONResponse
 from psycopg2 import OperationalError, IntegrityError as Psycopg2IntegrityError
 from sqlalchemy.exc import IntegrityError as SQLAlchemyIntegrityError
 
 
-def register_error_handlers(app: Flask) -> None:
-
-    @app.errorhandler(OperationalError)
-    def handle_database_exception(e: OperationalError) -> Response:
+def register_error_handlers(app: FastAPI) -> None:
+    @app.exception_handler(OperationalError)
+    async def handle_database_exception(request, exc: OperationalError):
         response = {
             'code': 500,
             'name': 'DatabaseError',
-            'description': str(e),
+            'description': str(exc),
         }
-        return Response(
-            json.dumps(response), status=500, content_type='application/json'
-        )
+        return JSONResponse(content=response, status_code=500)
 
-    @app.errorhandler(Psycopg2IntegrityError)
-    def handle_psycopg2_integrity_error(e: Psycopg2IntegrityError) -> Response:
-        if hasattr(e, 'pgcode') and e.pgcode and 'members_email_key' in e.pgcode:
-            raise ValueError('This email is already registered. Please use a different email.')
+    @app.exception_handler(Psycopg2IntegrityError)
+    async def handle_psycopg2_integrity_error(request, exc: Psycopg2IntegrityError):
+        if hasattr(exc, 'pgcode') and exc.pgcode and 'members_email_key' in exc.pgcode:
+            raise HTTPException(status_code=400,
+                                detail='This email is already registered. Please use a different email.')
         response = {
             'code': 400,
             'name': 'IntegrityError',
-            'description': f'A database integrity error occurred: {str(e)}',
+            'description': f'A database integrity error occurred: {str(exc)}',
         }
-        return Response(
-            json.dumps(response), status=400, content_type='application/json'
-        )
+        return JSONResponse(content=response, status_code=400)
 
-    @app.errorhandler(SQLAlchemyIntegrityError)
-    def handle_sqlalchemy_integrity_error(e: SQLAlchemyIntegrityError) -> Response:
+    @app.exception_handler(SQLAlchemyIntegrityError)
+    async def handle_sqlalchemy_integrity_error(request, exc: SQLAlchemyIntegrityError):
         response = {
             'code': 400,
             'name': 'IntegrityError',
-            'description': f'A database integrity error occurred: {str(e)}',
+            'description': f'A database integrity error occurred: {str(exc)}',
         }
-        return Response(
-            json.dumps(response), status=400, content_type='application/json'
-        )
+        return JSONResponse(content=response, status_code=400)
 
-    @app.errorhandler(ValueError)
-    def handle_value_error(e: ValueError) -> Response:
+    @app.exception_handler(ValueError)
+    async def handle_value_error(request, exc: ValueError):
         response = {
             'code': 400,
             'name': 'ValueError',
-            'description': f'Value error: {str(e)}',
+            'description': f'Value error: {str(exc)}',
         }
-        return Response(
-            json.dumps(response), status=400, content_type='application/json'
-        )
+        return JSONResponse(content=response, status_code=400)
 
-    @app.errorhandler(Exception)
-    def handle_generic_exception(e: Exception) -> Response:
+    @app.exception_handler(Exception)
+    async def handle_generic_exception(request, exc: Exception):
         response = {
             'code': 500,
-            'name': type(e).__name__,
-            'description': str(e),
+            'name': type(exc).__name__,
+            'description': str(exc),
         }
-        return Response(
-            json.dumps(response), status=500, content_type='application/json'
-        )
+        return JSONResponse(content=response, status_code=500)

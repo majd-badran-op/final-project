@@ -1,8 +1,15 @@
-from dataclasses import dataclass
-from .base_entity import BaseEntity
+from pydantic import BaseModel
+import uuid
 
 
-@dataclass
-class Member(BaseEntity):
+class Member(BaseModel):
+    id: uuid.UUID | None = None
     name: str
     email: str
+
+    def to_dict(self):
+        return {
+            'id': str(self.id) if self.id else None,
+            'name': self.name,
+            'email': self.email
+        }

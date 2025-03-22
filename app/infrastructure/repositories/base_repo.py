@@ -1,10 +1,10 @@
 from typing import Generic, TypeVar, Type, List, Any
-from app.domain.entities.base_entity import BaseEntity
+from pydantic import BaseModel
 from sqlalchemy import Table, insert, select, update, delete
 from sqlalchemy.orm import Session
 from sqlalchemy.engine import CursorResult
 
-E = TypeVar('E', bound=BaseEntity)
+E = TypeVar('E', bound=BaseModel)
 
 
 class BaseRepo(Generic[E]):
