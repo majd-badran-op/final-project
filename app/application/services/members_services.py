@@ -13,7 +13,7 @@ class MembersServices:
     def __init__(self) -> None:
         self.repo = MembersRepo()
 
-    def add(self, entity: Member) -> tuple[Member, int]:
+    async def add(self, entity: Member) -> tuple[Member, int]:
         with UnitOfWork() as uow:
             check_email: bool = self.repo.check_email(entity.email, uow.session)
             if check_email:
@@ -22,19 +22,19 @@ class MembersServices:
             else:
                 raise EmailAlreadyExistsError('The email address already exists.')
 
-    def get_all(self) -> tuple[list[Member] | str, int]:
+    async def get_all(self) -> tuple[list[Member] | str, int]:
         with UnitOfWork() as uow:
             if not (members := self.repo.get_all(uow.session)):
                 return 'No members found', 200
             return members, 200
 
-    def get_by_id(self, id: str) -> tuple[Member, int]:
+    async def get_by_id(self, id: str) -> tuple[Member, int]:
         with UnitOfWork() as uow:
             if not (member_entity := self.repo.get(id, uow.session)):
                 raise MemberNotFoundError()
         return member_entity, 200
 
-    def update(self, id: str, entity: dict[str, Any]) -> tuple[dict[str, Any], int]:
+    async def update(self, id: str, entity: dict[str, Any]) -> tuple[dict[str, Any], int]:
         cleaned_entity: dict = {}
         with UnitOfWork() as uow:
             if not (self.get_by_id(id)[0]):
@@ -45,7 +45,7 @@ class MembersServices:
             self.repo.update(cleaned_entity, id, uow.session)
         return {'message': 'Member updated successfully'}, 200
 
-    def delete(self, id: str) -> tuple[dict[str, str], int]:
+    async def delete(self, id: str) -> tuple[dict[str, str], int]:
         with UnitOfWork() as uow:
             if not (self.get_by_id(id)[0]):
                 raise MemberNotFoundError()
@@ -58,13 +58,3 @@ class MembersServices:
             if not self.repo.delete(id, uow.session):
                 raise FailedToDeleteMemberError()
         return {'message': 'Member deleted successfully'}, 200
-
-    def get_member_books(self, id: str) -> tuple[list[dict[str, Any]] | str, int]:
-        if not (self.get_by_id(id)[0]):
-            raise MemberNotFoundError()
-
-        member_books = self.book_serves.get_all_books_for_member(id)[0]
-
-        if not member_books:
-            return member_books, 200
-        return member_books, 200

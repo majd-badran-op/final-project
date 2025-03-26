@@ -9,7 +9,7 @@ class MembersRepo(BaseRepo[Member]):
     def __init__(self) -> None:
         super().__init__(Member, members)
 
-    def check_email(self, email: str, session: Session) -> bool:
+    async def check_email(self, email: str, session: Session) -> bool:
         sql = select(self.table).where(self.table.c.email == email)
         result = session.execute(sql).fetchone()
         if not result:

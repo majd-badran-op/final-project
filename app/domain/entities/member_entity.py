@@ -1,8 +1,8 @@
-from pydantic import BaseModel
+from app.domain.shared.base_entity import BaseEntity
 import uuid
 
 
-class Member(BaseModel):
+class Member(BaseEntity):
     id: uuid.UUID | None = None
     name: str
     email: str

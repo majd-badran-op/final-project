@@ -19,29 +19,29 @@ class BooksServices:
         self.repo = BooksRepo()
         self.member_services = MembersServices()
 
-    def add(self, entity: Book) -> tuple[Book, int]:
+    async def add(self, entity: Book) -> Book:
         with UnitOfWork() as uow:
-            book_entity = self.repo.insert(entity, uow.session)
-            return book_entity, 200
+            book_entity = await self.repo.insert(entity, uow.session)
+            return book_entity
 
-    def get_all(self) -> tuple[list[Book] | str, int]:
+    async def get_all(self) -> list[Book]:
         with UnitOfWork() as uow:
-            if not (books := self.repo.get_all(uow.session)):
-                return 'No books found', 200
-        return books, 200
+            if not (books := await self.repo.get_all(uow.session)):
+                return 'No books found'
+        return books
 
-    def get_all_books_for_member(self, id: str) -> tuple[list[dict[str, Any]], int] | tuple[str, int]:
+    async def get_all_books_for_member(self, id: str) -> tuple[list[Book], int] | tuple[str, int]:
         with UnitOfWork() as uow:
             books = self.repo.get_all_books_for_member(id, uow.session)
-        return (books, 200) if books else ('No books available.', 200)
+        return books if books else 'No books available.'
 
-    def get_by_id(self, id: str) -> tuple[Book, int]:
+    def get_by_id(self, id: str) -> Book | None:
         with UnitOfWork() as uow:
             if (book_entity := self.repo.get(id, uow.session)) is None:
                 raise BookNotFoundError()
-        return book_entity, 200
+        return book_entity
 
-    def update(self, id: str, entity: dict[str, Any]) -> tuple[dict[str, Any], int]:
+    async def update(self, id: str, entity: dict[str, Any]) -> tuple[dict[str, Any], int]:
         cleaned_entity: dict = {}
         with UnitOfWork() as uow:
             if not (self.get_by_id(id)[0]):
@@ -52,7 +52,7 @@ class BooksServices:
             self.repo.update(cleaned_entity, id, uow.session)
         return {'message': 'Book updated successfully'}, 200
 
-    def delete(self, id: str) -> tuple[dict[str, str], int]:
+    async def delete(self, id: str) -> tuple[dict[str, str], int]:
         with UnitOfWork() as uow:
             if (self.get_by_id(id)[0]) is None:
                 raise BookNotFoundError()
@@ -60,10 +60,10 @@ class BooksServices:
                 raise FailedToDeleteBookError()
         return {'message': 'Book deleted successfully'}, 200
 
-    def borrow(self, book_id: str, member_id: str) -> tuple[Book | None, dict[str, str], int]:
+    async def borrow(self, book_id: str, member_id: str) -> tuple[Book, dict[str, str], int]:
         to_update_entity: dict = {}
         with UnitOfWork():
-            if (book := self.get_by_id(book_id)[0]) is None:
+            if (book := self.get_by_id(book_id)) is None:
                 raise BookNotFoundError()
             if book.is_borrowed:
                 raise BookAlreadyBorrowedError()
@@ -75,10 +75,10 @@ class BooksServices:
             self.update(book_id, to_update_entity)
         return book, {'message': f'{book.title} borrowed successfully by {member.name}'}, 200
 
-    def return_book(self, book_id: str) -> tuple[Book | None, dict[str, str], int]:
+    async def return_book(self, book_id: str) -> tuple[Book | None, dict[str, str], int]:
         with UnitOfWork() as uow:
             updated_entity: dict = {}
-            if (book := self.get_by_id(book_id)[0]) is None:
+            if (book := self.get_by_id(book_id)) is None:
                 raise BookNotFoundError('Book not found for return.')
             if not book.is_borrowed:
                 raise BookReturnError()

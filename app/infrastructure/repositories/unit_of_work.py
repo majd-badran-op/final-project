@@ -1,26 +1,28 @@
-from sqlalchemy.orm import Session
 from typing import Optional, Type
 from app.infrastructure.database.con import engine
+from sqlalchemy.ext.asyncio import AsyncConnection, AsyncEngine
 
 
 class UnitOfWork:
     def __init__(self) -> None:
-        self.session: Session
+        self.session: AsyncEngine = engine
+        self.connection: AsyncConnection
 
-    def __enter__(self) -> 'UnitOfWork':
-        self.session = Session(engine)
+    async def __aenter__(self) -> 'UnitOfWork':
+        self.connection = await self.engine.connect()
+        await self.connection.begin()
         return self
 
-    def commit(self) -> None:
+    async def commit(self) -> None:
         if self.session:
             self.session.commit()
 
-    def rollback(self) -> None:
+    async def rollback(self) -> None:
         if self.session:
             self.session.rollback()
 
-    def __exit__(self, exc_type: Optional[Type[BaseException]],
-                 exc_value: Optional[BaseException], traceback: Optional[Type[BaseException]]) -> None:
+    async def __exit__(self, exc_type: Optional[Type[BaseException]],
+                       exc_value: Optional[BaseException], traceback: Optional[Type[BaseException]]) -> None:
         if exc_type:
             self.rollback()
         else:

@@ -1,25 +1,17 @@
-from pydantic import BaseModel
 from datetime import datetime
+from dataclasses import dataclass
+from app.domain.shared.base_entity import BaseEntity
 import uuid
 
 
-class Book(BaseModel):
-    id: int | None = None
+@dataclass
+class Book(BaseEntity):
     title: str
     author: str
     is_borrowed: bool = False
+    id: int | None = None
     borrowed_date: datetime | None = None
     borrowed_by: uuid.UUID | None = None
-
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'title': self.title,
-            'author': self.author,
-            'is_borrowed': self.is_borrowed,
-            'borrowed_date': self.borrowed_date.isoformat() if self.borrowed_date else None,
-            'borrowed_by': str(self.borrowed_by) if self.borrowed_by else None
-        }
 
     def borrow(self, member: str) -> None:
         self.is_borrowed = True
