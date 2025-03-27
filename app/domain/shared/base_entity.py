@@ -1,9 +1,10 @@
-
-from typing import Any, Type, TypeVar
-from dataclasses import dataclass, fields
+from typing import Any, Type, TypeVar, Optional
+from dataclasses import dataclass, fields, field
 from datetime import datetime, timezone
 from enum import Enum
 from uuid import UUID
+import uuid
+
 T = TypeVar('T', bound='BaseEntityBase')
 
 
@@ -68,19 +69,7 @@ class BaseEntityBase:
         return cls(**instance_data)
 
     def to_dict(self, exclude: list[str] | None = None, map_primitive: bool = True) -> dict[str, Any]:
-        """    def to_dict(self):
-        return {
-            'id': self.id,
-            'title': self.title,
-            'author': self.author,
-            'is_borrowed': self.is_borrowed,
-            'borrowed_date': self.borrowed_date.isoformat() if self.borrowed_date else None,
-            'borrowed_by': str(self.borrowed_by) if self.borrowed_by else None
-        }
-
-        Convert the current object to a dictionary and handle nested dataclasses.
-        Recursively converts all nested dataclasses to dictionaries.
-        """
+        """Convert the current object to a dictionary and handle nested dataclasses."""
         excluded_fields = list(self.config.to_dict_excluded_fields)
         if exclude:
             excluded_fields = excluded_fields + exclude
@@ -103,4 +92,4 @@ class BaseEntityBase:
 
 
 class BaseEntity(BaseEntityBase):
-    ...
+    id: Optional[str] = field(default_factory=lambda: str(uuid.uuid4()))

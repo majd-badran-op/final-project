@@ -1,5 +1,5 @@
-from app.presentation.models.book import BookResponse
 from .shared import DataModel
+from typing import Any
 import uuid
 
 
@@ -9,14 +9,7 @@ class MemberRequest(DataModel):
 
 
 class MemberResponse(DataModel):
-    id: uuid.UUID
-    name: str
-    email: str
-    massage: str | None
-    books: list[BookResponse] | None
-
-
-class UpdateMember(DataModel):
-    id: uuid.UUID
+    id: uuid.UUID | None
     name: str | None
     email: str | None
+    books: list[dict[str, Any]] | str | None = []

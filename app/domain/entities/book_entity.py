@@ -1,22 +1,21 @@
 from datetime import datetime
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from app.domain.shared.base_entity import BaseEntity
-import uuid
 
 
 @dataclass
 class Book(BaseEntity):
     title: str
     author: str
-    is_borrowed: bool = False
-    id: int | None = None
-    borrowed_date: datetime | None = None
-    borrowed_by: uuid.UUID | None = None
+    id: int | None = field(default=None)
+    is_borrowed: bool = field(default=False)
+    borrowed_date: datetime | None = field(default=None)
+    borrowed_by: str | None = field(default=None)
 
     def borrow(self, member: str) -> None:
         self.is_borrowed = True
         self.borrowed_date = datetime.now()
-        self.borrowed_by = uuid.UUID(member)
+        self.borrowed_by = member
 
     def return_book(self) -> None:
         self.is_borrowed = False

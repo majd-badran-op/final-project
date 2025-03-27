@@ -1,15 +1,15 @@
 from datetime import datetime
 from .shared import DataModel
-from typing import Any
+from typing import Optional
 import uuid
 
 
 class BookRequest(DataModel):
     title: str
     author: str
-    is_borrowed: bool | None
-    borrowed_date: datetime | None
-    borrowed_by: uuid.UUID | None
+    is_borrowed: bool = False
+    borrowed_date: Optional[datetime] = None
+    borrowed_by: Optional[uuid.UUID] = None
 
 
 class BookResponse(DataModel):
@@ -19,4 +19,4 @@ class BookResponse(DataModel):
     is_borrowed: bool | None
     borrowed_date: datetime | None
     borrowed_by: uuid.UUID | None
-    massage: Any | None = None
+    message: Optional[str] = None

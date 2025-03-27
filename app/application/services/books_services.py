@@ -12,6 +12,7 @@ from app.domain.exceptions.member_exceptions import (
 )
 from .members_services import MembersServices
 from typing import Any
+import uuid
 
 
 class BooksServices:
@@ -20,70 +21,76 @@ class BooksServices:
         self.member_services = MembersServices()
 
     async def add(self, entity: Book) -> Book:
-        with UnitOfWork() as uow:
-            book_entity = await self.repo.insert(entity, uow.session)
+        async with UnitOfWork() as uow:
+            book_entity = await self.repo.insert(entity, uow.connection)
             return book_entity
 
     async def get_all(self) -> list[Book]:
-        with UnitOfWork() as uow:
-            if not (books := await self.repo.get_all(uow.session)):
+        async with UnitOfWork() as uow:
+            books = await self.repo.get_all(uow.connection)
+            if not books:
                 return 'No books found'
         return books
 
-    async def get_all_books_for_member(self, id: str) -> tuple[list[Book], int] | tuple[str, int]:
-        with UnitOfWork() as uow:
-            books = self.repo.get_all_books_for_member(id, uow.session)
+    async def get_all_books_for_member(self, id: uuid.UUID) -> list[Book] | str:
+        async with UnitOfWork() as uow:
+            books = await self.repo.get_all_books_for_member(id, uow.connection)
         return books if books else 'No books available.'
 
-    def get_by_id(self, id: str) -> Book | None:
-        with UnitOfWork() as uow:
-            if (book_entity := self.repo.get(id, uow.session)) is None:
+    async def get_by_id(self, id: int) -> Book | None:
+        async with UnitOfWork() as uow:
+            book_entity = await self.repo.get(id, uow.connection)
+            if book_entity is None:
                 raise BookNotFoundError()
         return book_entity
 
-    async def update(self, id: str, entity: dict[str, Any]) -> tuple[dict[str, Any], int]:
+    async def update(self, id: int, entity: dict[str, Any]) -> tuple[Book, str]:
         cleaned_entity: dict = {}
-        with UnitOfWork() as uow:
-            if not (self.get_by_id(id)[0]):
+        async with UnitOfWork() as uow:
+            book = await self.get_by_id(id)
+            if not book:
                 raise BookNotFoundError()
+
             for key, value in entity.items():
                 if value is not None:
                     cleaned_entity[key] = value
-            self.repo.update(cleaned_entity, id, uow.session)
-        return {'message': 'Book updated successfully'}, 200
 
-    async def delete(self, id: str) -> tuple[dict[str, str], int]:
-        with UnitOfWork() as uow:
-            if (self.get_by_id(id)[0]) is None:
+            updated_book = await self.repo.update(cleaned_entity, id, uow.connection)
+        return updated_book, 'Book updated successfully'
+
+    async def delete(self, id: int) -> tuple[Book, str]:
+        async with UnitOfWork() as uow:
+            book = await self.get_by_id(id)
+            if not book:
                 raise BookNotFoundError()
-            if not self.repo.delete(id, uow.session):
+            deleted = await self.repo.delete(id, uow.connection)
+            if not deleted:
                 raise FailedToDeleteBookError()
-        return {'message': 'Book deleted successfully'}, 200
+        return book, 'Book deleted successfully'
 
-    async def borrow(self, book_id: str, member_id: str) -> tuple[Book, dict[str, str], int]:
-        to_update_entity: dict = {}
-        with UnitOfWork():
-            if (book := self.get_by_id(book_id)) is None:
-                raise BookNotFoundError()
-            if book.is_borrowed:
-                raise BookAlreadyBorrowedError()
-            if (member := self.member_services.get_by_id(member_id)[0]) is None or member.id is None:
-                raise MemberNotFoundError()
-            book.borrow(member_id)
-            for key, value in vars(book).items():
-                to_update_entity[key] = value
-            self.update(book_id, to_update_entity)
-        return book, {'message': f'{book.title} borrowed successfully by {member.name}'}, 200
+    async def borrow(self, book_id: int, member_id: str) -> tuple[Book, str]:
+        book = await self.get_by_id(book_id)
+        if not book:
+            raise BookNotFoundError(f'Book with id {book_id} not found.')
+        if book.is_borrowed:
+            raise BookAlreadyBorrowedError(f'The book {book.title} is already borrowed.')
+        member = await self.member_services.get_by_id(member_id)
+        if not member or not member.id:
+            raise MemberNotFoundError(f'Member with id {member_id} not found.')
+        book.borrow(member_id)
+        await self.update(book_id, vars(book))
+        return book, f'{book.title} borrowed successfully by {member.name}'
 
-    async def return_book(self, book_id: str) -> tuple[Book | None, dict[str, str], int]:
-        with UnitOfWork() as uow:
-            updated_entity: dict = {}
-            if (book := self.get_by_id(book_id)) is None:
+    async def return_book(self, book_id: int) -> tuple[Book | None, str]:
+        updated_entity: dict = {}
+        async with UnitOfWork() as uow:
+            book = await self.get_by_id(book_id)
+            if not book:
                 raise BookNotFoundError('Book not found for return.')
             if not book.is_borrowed:
                 raise BookReturnError()
             book.return_book()
             for key, value in vars(book).items():
                 updated_entity[key] = value
-            self.repo.update(updated_entity, book_id, uow.session)
-        return book, {'message': f'Book with title \'{book.title}\' is now available for borrowing.'}, 200
+            await self.repo.update(updated_entity, book_id, uow.connection)
+        return book, f'Book with title \'{book.title}\' is now available for borrowing.'

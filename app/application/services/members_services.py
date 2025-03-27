@@ -3,58 +3,60 @@ from app.infrastructure.repositories.unit_of_work import UnitOfWork
 from app.domain.entities.member_entity import Member
 from app.domain.exceptions.member_exceptions import (
     MemberNotFoundError,
-    FailedToDeleteMemberError,
     EmailAlreadyExistsError
 )
 from typing import Any
+import uuid
 
 
 class MembersServices:
     def __init__(self) -> None:
         self.repo = MembersRepo()
 
-    async def add(self, entity: Member) -> tuple[Member, int]:
-        with UnitOfWork() as uow:
-            check_email: bool = self.repo.check_email(entity.email, uow.session)
+    async def add(self, entity: Member) -> Member:
+        async with UnitOfWork() as uow:
+            check_email: bool = await self.repo.check_email(entity.email, uow.connection)
             if check_email:
-                if (member_entity := self.repo.insert(entity, uow.session)):
-                    return member_entity, 200
+                if (member_entity := await self.repo.insert(entity, uow.connection)):
+                    return member_entity
             else:
                 raise EmailAlreadyExistsError('The email address already exists.')
 
-    async def get_all(self) -> tuple[list[Member] | str, int]:
-        with UnitOfWork() as uow:
-            if not (members := self.repo.get_all(uow.session)):
-                return 'No members found', 200
-            return members, 200
+    async def get_all(self) -> list[Member]:
+        async with UnitOfWork() as uow:
+            members = await self.repo.get_all(uow.connection)
+            if not members:
+                return []
+        return members
 
-    async def get_by_id(self, id: str) -> tuple[Member, int]:
-        with UnitOfWork() as uow:
-            if not (member_entity := self.repo.get(id, uow.session)):
+    async def get_by_id(self, id: uuid.UUID) -> Member | None:
+        async with UnitOfWork() as uow:
+            member_entity = await self.repo.get(id, uow.connection)
+            if member_entity is None:
                 raise MemberNotFoundError()
-        return member_entity, 200
+        return member_entity
 
-    async def update(self, id: str, entity: dict[str, Any]) -> tuple[dict[str, Any], int]:
+    async def update(self, id: uuid.UUID, entity: dict[str, Any]) -> tuple[Member, str]:
         cleaned_entity: dict = {}
-        with UnitOfWork() as uow:
-            if not (self.get_by_id(id)[0]):
+        async with UnitOfWork() as uow:
+            member = await self.get_by_id(id)
+            if not member:
                 raise MemberNotFoundError()
+
             for key, value in entity.items():
                 if value is not None:
                     cleaned_entity[key] = value
-            self.repo.update(cleaned_entity, id, uow.session)
-        return {'message': 'Member updated successfully'}, 200
 
-    async def delete(self, id: str) -> tuple[dict[str, str], int]:
-        with UnitOfWork() as uow:
-            if not (self.get_by_id(id)[0]):
+            updated_member = await self.repo.update(cleaned_entity, id, uow.connection)
+        return updated_member, 'Member updated successfully'
+
+    async def delete(self, id: uuid.UUID) -> tuple[Member, str]:
+        async with UnitOfWork() as uow:
+            member = await self.get_by_id(id)
+            if not member:
                 raise MemberNotFoundError()
-            elif not isinstance((books := self.book_serves.get_all_books_for_member(id)[0]), str):
-                raise ValueError(
-                    f'Cannot delete member with ID {id} because they still have {len(books)} '
-                    'borrowed books.'
-                )
-
-            if not self.repo.delete(id, uow.session):
-                raise FailedToDeleteMemberError()
-        return {'message': 'Member deleted successfully'}, 200
+            deleted = await self.repo.delete(id, uow.connection)
+        if deleted:
+            return member, 'Member deleted successfully'
+        else:
+            return member, 'Can\'t delete Member'
