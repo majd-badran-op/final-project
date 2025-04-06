@@ -13,3 +13,4 @@ class MemberResponse(DataModel):
     name: str | None
     email: str | None
     books: list[dict[str, Any]] | str | None = []
+    message: str | None = None

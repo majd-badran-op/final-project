@@ -16,11 +16,12 @@ class MembersServices:
     async def add(self, entity: Member) -> Member:
         async with UnitOfWork() as uow:
             check_email: bool = await self.repo.check_email(entity.email, uow.connection)
-            if check_email:
-                if (member_entity := await self.repo.insert(entity, uow.connection)):
-                    return member_entity
-            else:
+            if not check_email:
                 raise EmailAlreadyExistsError('The email address already exists.')
+            member_entity = await self.repo.insert(entity, uow.connection)
+            if member_entity is None:
+                raise ValueError('Failed to insert member.')
+            return member_entity
 
     async def get_all(self) -> list[Member]:
         async with UnitOfWork() as uow:
