@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:13
+    container_name: my_postgres
+    environment:
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: ${DATABASE_NAME}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app_network
+
+  app:
+    build: .
+    container_name: fastapi_app
+    environment:
+      DATABASE_USER: ${DATABASE_USER}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+      DATABASE_HOST: postgres
+      DATABASE_PORT: ${DATABASE_PORT}
+      DATABASE_NAME: ${DATABASE_NAME}
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+    command: >
+      sh -c "
+        # Wait for PostgreSQL to be ready before running migrations
+        until nc -z -v -w30 postgres 5432; do
+          echo 'Waiting for PostgreSQL...'
+          sleep 1
+        done &&
+        alembic upgrade head &&
+        uvicorn main:app --host 0.0.0.0 --port 8000
+      "
+    networks:
+      - app_network
+
+volumes:
+  postgres_data:
+
+networks:
+  app_network:
+    driver: bridge
